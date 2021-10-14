@@ -15,30 +15,12 @@ FROM selenium/node-chrome
 USER root
 
 RUN set -o errexit -o nounset; \
-    chrome_version="$(google-chrome --version | awk '{print $NF}')"; \
-    sed -i 's|"/opt[^"]\+"|/opt/chromium/chrome|g' /usr/bin/google-chrome; \
-    mv /usr/bin/google-chrome /usr/bin/chromium; \
-    rm -r /opt/google /usr/bin/google*; \
-    base_position="$(curl -fs "https://omahaproxy.appspot.com/deps.json?version=${chrome_version}" | \
-            jq -r .chromium_base_position)"; \
-    chrome_dir=chrome-linux; \
-    chrome_zip="${chrome_dir}.zip"; \
-    dest=/opt/chromium; \
-    download_url() { \
-        echo "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Linux_x64%2F${1}%2Fchrome-linux.zip?alt=media"; \
-    }; \
-    until curl -fI "$(download_url "$base_position")"; do \
-        base_position=$(( base_position - 1 )); \
-    done; \
-    curl --compressed -fso "$chrome_zip" "$(download_url "$base_position")"; \
-    unzip "$chrome_zip"; \
-    rm "$chrome_zip"; \
-    mkdir "$dest"; \
-    mv "${chrome_dir}/"* "$dest"; \
-    rmdir "${chrome_dir}"; \
-    sed -i s/google-chrome/chromium/g /opt/bin/*; \
-    chromium_version="$(chromium --version | awk '{print $NF}')"; \
-    sed -i "s/^CHROME_VERSION=.*/CHROME_VERSION=${chromium_version}/" /opt/bin/generate_config; \
-    echo Got Chromium "$(chromium --version | awk '{print $2}')"
+    apt-get remove --yes google-chrome-stable; \
+    rm "$(command -v chromedriver)" /opt/selenium/chromedriver*; \
+    echo 'deb http://download.opensuse.org/repositories/home:/ungoogled_chromium/Ubuntu_Focal/ /' >/etc/apt/sources.list.d/home:ungoogled_chromium.list; \
+    curl -fsSL https://download.opensuse.org/repositories/home:ungoogled_chromium/Ubuntu_Focal/Release.key | \
+        gpg --dearmor >/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg; \
+    apt-get update; \
+    apt-get install --yes --no-install-recommends ungoogled-chromium ungoogled-chromium-driver
 
 USER seluser
