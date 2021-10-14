@@ -36,7 +36,7 @@ RUN set -o errexit -o nounset; \
     mkdir "$dest"; \
     mv "${chrome_dir}/"* "$dest"; \
     rmdir "${chrome_dir}"; \
-    sed -i s/google-chrome/chromium/g /opt/bin/*; \
+    find /opt/bin -maxdepth 1 -type f -exec sed -i s/google-chrome/chromium/g {} +; \
     chromium_version="$(chromium --version | awk '{print $NF}')"; \
     sed -i "s/^CHROME_VERSION=.*/CHROME_VERSION=${chromium_version}/" /opt/bin/generate_config; \
     echo Got Chromium "$(chromium --version | awk '{print $2}')"
