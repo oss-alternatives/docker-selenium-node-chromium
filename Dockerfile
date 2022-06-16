@@ -14,7 +14,9 @@ FROM selenium/node-chrome
 
 USER root
 
-RUN set -o errexit -o nounset; \
+# Temporarily switch to bash to use pipefail
+SHELL ["/bin/bash", "-c"]
+RUN set -o errexit -o nounset -o pipefail; \
     chrome_version="$(google-chrome --version | awk '{print $NF}')"; \
     sed -i 's|"/opt[^"]\+"|/opt/chromium/chrome|g' /usr/bin/google-chrome; \
     mv /usr/bin/google-chrome /usr/bin/chromium; \
@@ -40,5 +42,6 @@ RUN set -o errexit -o nounset; \
     chromium_version="$(chromium --version | awk '{print $NF}')"; \
     sed -i "s/^CHROME_VERSION=.*/CHROME_VERSION=${chromium_version}/" /opt/bin/generate_config; \
     echo Got Chromium "$(chromium --version | awk '{print $2}')"
+SHELL ["/bin/sh", "-c"]
 
 USER seluser
